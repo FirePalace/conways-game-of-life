@@ -4,13 +4,18 @@ Game::Game(const char* title, int width, int height, SDL_WindowFlags flags)
 	: win{ SDL_CreateWindow(title, width, height, flags) }, ren{ SDL_CreateRenderer(win, nullptr) }
 {
 	if (!win || !ren) throw "Window or Renderer could not be created";
+	loop();
 }
 
 void Game::loop()
 {
-	SDL_Event e;
-	while (SDL_PollEvent(&e)) {
-		if (e.type == SDL_EVENT_QUIT) break;
+	bool running = true;
+	while (running) {
+		SDL_Event e;
+		while (SDL_PollEvent(&e)) {
+			if (e.type == SDL_EVENT_QUIT || e.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) running = false;
+		}
+
 		per_frame();
 	}
 }
