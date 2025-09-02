@@ -1,9 +1,7 @@
 #pragma once
 #include <SDL3/SDL.h>
-#include "cell.h"
-#include <vector>
-#include <memory>
-//inline static std::unique_ptr<std::vector<Cell>> active_cells = std::make_unique< std::vector<Cell>>();
+#include "coordinate.h"
+
 class Game {
 	int win_height;
 	int win_width;
@@ -16,6 +14,10 @@ public:
 	void draw_frame();
 	void adjust_viewport();
 	void draw_grid();
+	void simulate_generation();
+	void draw_cells();
+	int get_cell_state(const Cell& c);
+
 
 	~Game();
 };

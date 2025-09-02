@@ -17,7 +17,8 @@ void Game::loop()
 		while (SDL_PollEvent(&e)) {
 			if (e.type == SDL_EVENT_QUIT || e.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) return;
 		}
-
+		//TODO only simulate once ready
+		simulate_generation();
 		draw_frame();
 	}
 }
@@ -62,6 +63,91 @@ void Game::draw_grid()
 		y += GRID_SIZE;
 	}
 
+}
+
+void Game::simulate_generation()
+{
+
+	*set_active = *set_active_next;
+	set_active_next->clear();
+	set_active_next->reserve(set_active->size());
+
+
+	*set_potential = *set_potential_next;
+
+	// We know all active cells this epoch have potential to stimulate next epoch
+	*set_potential_next = *set_active;
+
+	for (const auto& c : *set_potential)
+	{
+		// Cell has changed, apply rules
+
+		// The secret of artificial life =================================================
+		int nNeighbours =
+			get_cell_state(Cell(c.x - 10, c.y - 10)) +
+			get_cell_state(Cell(c.x - 0, c.y - 10)) +
+			get_cell_state(Cell(c.x + 10, c.y - 10)) +
+			get_cell_state(Cell(c.x - 10, c.y + 0)) +
+			get_cell_state(Cell(c.x + 10, c.y + 0)) +
+			get_cell_state(Cell(c.x - 10, c.y + 10)) +
+			get_cell_state(Cell(c.x + 0, c.y + 10)) +
+			get_cell_state(Cell(c.x + 10, c.y + 10));
+
+
+		if (get_cell_state(c) == 1)
+		{
+			// if cell is alive and has 2 or 3 neighbours, cell lives on
+			bool cell_lives_on = (nNeighbours == 2 || nNeighbours == 3);
+
+			if (!cell_lives_on)
+			{
+				// Kill cell through activity omission		
+
+				// Neighbours are stimulated for computation next epoch												
+				for (int y = -1; y <= 1; y++)
+					for (int x = -1; x <= 1; x++)
+						set_potential_next->insert(c + Cell(x, y));
+			}
+			else
+			{
+				// No Change - Keep cell alive
+				set_active_next->insert(c);
+			}
+
+
+		}
+		else
+		{
+			int s = (nNeighbours == 3);
+			if (s == 1)
+			{
+				// Spawn cell
+				set_active_next->insert(c);
+
+				// Neighbours are stimulated for computation next epoch												
+				for (int y = -1; y <= 1; y++)
+					for (int x = -1; x <= 1; x++)
+						set_potential_next->insert(c + Cell(x, y));
+			}
+			else
+			{
+				// No Change - Keep cell dead						
+			}
+		}
+		// ===============================================================================
+	}
+}
+
+void Game::draw_cells()
+{
+	for (const Cell& c : *set_active) {
+		//TODO
+	}
+}
+
+int Game::get_cell_state(const Cell& c)
+{
+	return set_active->contains(c) ? 1 : 0;;
 }
 
 

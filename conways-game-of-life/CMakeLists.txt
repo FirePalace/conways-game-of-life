@@ -9,7 +9,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/$<CONFIGURATION>")
 # This assumes the SDL source is available in vendored/SDL
 add_subdirectory(vendored/SDL EXCLUDE_FROM_ALL)
 # Add source to this project's executable.
-add_executable (conways-game-of-life "main.cpp" "game.cpp"  "cell.h" "cell.cpp" "common.h" "coordinate.h" "coordinate.cpp")
+add_executable (conways-game-of-life "main.cpp" "game.cpp"    "common.h" "coordinate.h" "coordinate.cpp")
 
 target_link_libraries(conways-game-of-life PRIVATE SDL3::SDL3)
 
