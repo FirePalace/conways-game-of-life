@@ -1,13 +1,13 @@
 #include "coordinate.h"
 
-Cell transform_tiles_to_global(int tile_x, int tile_y)
+std::pair<int, int> transform_tiles_to_global(std::pair<int, int> p)
 {
 
-	return Cell(tile_x * GRID_SIZE, tile_y * GRID_SIZE);
+	return std::pair(p.first * GRID_SIZE, p.second * GRID_SIZE);
 
 }
 
-Cell transform_global_to_tiles(int tile_x, int tile_y)
+std::pair<int, int> transform_global_to_tiles(std::pair<int, int> p)
 {
-	return Cell(tile_x / GRID_SIZE, tile_y / GRID_SIZE);
+	return std::pair(p.first / GRID_SIZE, p.second / GRID_SIZE);
 }

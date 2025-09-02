@@ -8,6 +8,7 @@ struct Cell {
 	int y;
 
 	Cell(int x, int y) : x{ x }, y{ y } {}
+	Cell(std::pair<int, int> p) : x{ p.first }, y{ p.second } {}
 
 	std::pair<int, int> transform_global_to_tiles(int x, int y) {
 		return std::pair{ x / GRID_SIZE, y / GRID_SIZE };
@@ -38,5 +39,5 @@ static std::unique_ptr<std::unordered_set<Cell>> set_active_next = std::make_uni
 static std::unique_ptr<std::unordered_set<Cell>> set_potential = std::make_unique<std::unordered_set<Cell >>();
 static std::unique_ptr<std::unordered_set<Cell>> set_potential_next = std::make_unique<std::unordered_set<Cell >>();
 
-Cell transform_tiles_to_global(int tile_x, int tile_y);
-Cell transform_global_to_tiles(int tile_x, int tile_y);
+std::pair<int, int> transform_tiles_to_global(std::pair<int, int> p);
+std::pair<int, int> transform_global_to_tiles(std::pair<int, int> p);

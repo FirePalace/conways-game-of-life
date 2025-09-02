@@ -14,6 +14,8 @@ public:
 	void draw_frame();
 	void adjust_viewport();
 	void draw_grid();
+	void handle_mouse_buttons(const SDL_Event& e);
+	void handle_mouse_botton_up(const SDL_Event& e);
 	void simulate_generation();
 	void draw_cells();
 	int get_cell_state(const Cell& c);

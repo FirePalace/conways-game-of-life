@@ -15,10 +15,14 @@ void Game::loop()
 	while (true) {
 		SDL_Event e;
 		while (SDL_PollEvent(&e)) {
-			if (e.type == SDL_EVENT_QUIT || e.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) return;
+			if (e.type == SDL_EVENT_QUIT || e.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED)
+				return;
+			if (e.type == SDL_EVENT_MOUSE_BUTTON_DOWN || e.type == SDL_EVENT_MOUSE_BUTTON_UP)
+				handle_mouse_buttons(e);
+
 		}
 		//TODO only simulate once ready
-		simulate_generation();
+
 		draw_frame();
 	}
 }
@@ -31,9 +35,12 @@ void Game::draw_frame()
 	// 2) draw a 100x100 square at (200,150)
 	SDL_FRect square{ 200.f, 150.f, GRID_SIZE, GRID_SIZE };
 
+
 	// filled square
 	SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
 	SDL_RenderFillRect(ren, &square);          // filled, subpixel API
+
+	draw_cells();
 
 	SDL_SetRenderViewport(ren, &viewport);
 
@@ -65,6 +72,27 @@ void Game::draw_grid()
 
 }
 
+void Game::handle_mouse_buttons(const SDL_Event& e)
+{
+	if (e.button.button == SDL_BUTTON_RIGHT && e.button.down) {
+		simulate_generation();
+	}
+
+	if (e.button.button == SDL_BUTTON_LEFT && !e.button.down) {
+		int x = e.button.x;
+		int y = e.button.y;
+
+
+		Cell m(transform_global_to_tiles(std::pair(x, y)));
+		set_active_next->insert(m);
+		set_active->insert(m);
+
+		for (int y = -GRID_SIZE; y <= GRID_SIZE; y++)
+			for (int x = -GRID_SIZE; x <= GRID_SIZE; x++)
+				set_potential_next->insert(m + Cell(x, y));
+	}
+}
+
 void Game::simulate_generation()
 {
 
@@ -74,8 +102,6 @@ void Game::simulate_generation()
 
 
 	*set_potential = *set_potential_next;
-
-	// We know all active cells this epoch have potential to stimulate next epoch
 	*set_potential_next = *set_active;
 
 	for (const auto& c : *set_potential)
@@ -84,14 +110,14 @@ void Game::simulate_generation()
 
 		// The secret of artificial life =================================================
 		int nNeighbours =
-			get_cell_state(Cell(c.x - 10, c.y - 10)) +
-			get_cell_state(Cell(c.x - 0, c.y - 10)) +
-			get_cell_state(Cell(c.x + 10, c.y - 10)) +
-			get_cell_state(Cell(c.x - 10, c.y + 0)) +
-			get_cell_state(Cell(c.x + 10, c.y + 0)) +
-			get_cell_state(Cell(c.x - 10, c.y + 10)) +
-			get_cell_state(Cell(c.x + 0, c.y + 10)) +
-			get_cell_state(Cell(c.x + 10, c.y + 10));
+			get_cell_state(Cell(c.x - 1, c.y - 1)) +
+			get_cell_state(Cell(c.x - 0, c.y - 1)) +
+			get_cell_state(Cell(c.x + 1, c.y - 1)) +
+			get_cell_state(Cell(c.x - 1, c.y + 0)) +
+			get_cell_state(Cell(c.x + 1, c.y + 0)) +
+			get_cell_state(Cell(c.x - 1, c.y + 1)) +
+			get_cell_state(Cell(c.x + 0, c.y + 1)) +
+			get_cell_state(Cell(c.x + 1, c.y + 1));
 
 
 		if (get_cell_state(c) == 1)
@@ -134,13 +160,19 @@ void Game::simulate_generation()
 				// No Change - Keep cell dead						
 			}
 		}
-		// ===============================================================================
+
 	}
 }
 
 void Game::draw_cells()
 {
+	SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
 	for (const Cell& c : *set_active) {
+		std::pair coords = transform_tiles_to_global(std::pair{ c.x,c.y });
+		SDL_FRect square{ coords.first, coords.second, GRID_SIZE, GRID_SIZE };
+
+		// filled square
+		SDL_RenderFillRect(ren, &square);
 		//TODO
 	}
 }
