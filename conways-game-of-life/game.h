@@ -1,6 +1,6 @@
 #pragma once
 #include <SDL3/SDL.h>
-#include "coordinate.h"
+#include "cell.h"
 
 class Game {
 	int win_height;
@@ -15,7 +15,7 @@ public:
 	void adjust_viewport();
 	void draw_grid();
 	void handle_mouse_buttons(const SDL_Event& e);
-	void handle_mouse_botton_up(const SDL_Event& e);
+	void handle_keyboard_input(const SDL_Event& e);
 	void simulate_generation();
 	void draw_cells();
 	int get_cell_state(const Cell& c);

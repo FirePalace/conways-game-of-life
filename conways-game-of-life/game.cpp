@@ -87,10 +87,14 @@ void Game::handle_mouse_buttons(const SDL_Event& e)
 		set_active_next->insert(m);
 		set_active->insert(m);
 
-		for (int y = -GRID_SIZE; y <= GRID_SIZE; y++)
-			for (int x = -GRID_SIZE; x <= GRID_SIZE; x++)
+		for (int y = -1; y <= 1; y++)
+			for (int x = -1; x <= 1; x++)
 				set_potential_next->insert(m + Cell(x, y));
 	}
+}
+
+void Game::handle_keyboard_input(const SDL_Event& e)
+{
 }
 
 void Game::simulate_generation()
@@ -109,7 +113,7 @@ void Game::simulate_generation()
 		// Cell has changed, apply rules
 
 		// The secret of artificial life =================================================
-		int nNeighbours =
+		int neighbours =
 			get_cell_state(Cell(c.x - 1, c.y - 1)) +
 			get_cell_state(Cell(c.x - 0, c.y - 1)) +
 			get_cell_state(Cell(c.x + 1, c.y - 1)) +
@@ -123,7 +127,7 @@ void Game::simulate_generation()
 		if (get_cell_state(c) == 1)
 		{
 			// if cell is alive and has 2 or 3 neighbours, cell lives on
-			bool cell_lives_on = (nNeighbours == 2 || nNeighbours == 3);
+			bool cell_lives_on = (neighbours == 2 || neighbours == 3);
 
 			if (!cell_lives_on)
 			{
@@ -144,10 +148,9 @@ void Game::simulate_generation()
 		}
 		else
 		{
-			int s = (nNeighbours == 3);
-			if (s == 1)
+			bool cell_to_life = (neighbours == 3);
+			if (cell_to_life)
 			{
-				// Spawn cell
 				set_active_next->insert(c);
 
 				// Neighbours are stimulated for computation next epoch												
@@ -169,9 +172,8 @@ void Game::draw_cells()
 	SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
 	for (const Cell& c : *set_active) {
 		std::pair coords = transform_tiles_to_global(std::pair{ c.x,c.y });
-		SDL_FRect square{ coords.first, coords.second, GRID_SIZE, GRID_SIZE };
 
-		// filled square
+		SDL_FRect square{ coords.first, coords.second, GRID_SIZE, GRID_SIZE };
 		SDL_RenderFillRect(ren, &square);
 		//TODO
 	}

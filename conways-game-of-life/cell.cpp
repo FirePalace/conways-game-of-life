@@ -1,4 +1,4 @@
-#include "coordinate.h"
+#include "cell.h"
 
 std::pair<int, int> transform_tiles_to_global(std::pair<int, int> p)
 {
