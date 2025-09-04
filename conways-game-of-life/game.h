@@ -15,7 +15,7 @@ public:
 	void adjust_viewport();
 	void draw_grid();
 	void handle_mouse_buttons(const SDL_Event& e);
-	void handle_keyboard_input(const SDL_Event& e);
+	void handle_keyboard_input(const SDL_KeyboardEvent& e);
 	void simulate_generation();
 	void draw_cells();
 	int get_cell_state(const Cell& c);

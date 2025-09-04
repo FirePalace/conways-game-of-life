@@ -19,10 +19,10 @@ void Game::loop()
 				return;
 			if (e.type == SDL_EVENT_MOUSE_BUTTON_DOWN || e.type == SDL_EVENT_MOUSE_BUTTON_UP)
 				handle_mouse_buttons(e);
+			if (e.type == SDL_EVENT_KEY_DOWN || e.type == SDL_EVENT_KEY_UP)
+				handle_keyboard_input(e.key);
 
 		}
-		//TODO only simulate once ready
-
 		draw_frame();
 	}
 }
@@ -32,15 +32,10 @@ void Game::draw_frame()
 	SDL_SetRenderDrawColor(ren, 20, 20, 20, 255);
 	SDL_RenderClear(ren);
 	draw_grid();
-	// 2) draw a 100x100 square at (200,150)
-	SDL_FRect square{ 200.f, 150.f, GRID_SIZE, GRID_SIZE };
-
-
-	// filled square
-	SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
-	SDL_RenderFillRect(ren, &square);          // filled, subpixel API
 
 	draw_cells();
+
+
 
 	SDL_SetRenderViewport(ren, &viewport);
 
@@ -74,10 +69,6 @@ void Game::draw_grid()
 
 void Game::handle_mouse_buttons(const SDL_Event& e)
 {
-	if (e.button.button == SDL_BUTTON_RIGHT && e.button.down) {
-		simulate_generation();
-	}
-
 	if (e.button.button == SDL_BUTTON_LEFT && !e.button.down) {
 		int x = e.button.x;
 		int y = e.button.y;
@@ -93,8 +84,12 @@ void Game::handle_mouse_buttons(const SDL_Event& e)
 	}
 }
 
-void Game::handle_keyboard_input(const SDL_Event& e)
+void Game::handle_keyboard_input(const SDL_KeyboardEvent& e)
 {
+	//TODO fix double simulation
+	if (e.key == SDLK_SPACE) {
+		simulate_generation();
+	}
 }
 
 void Game::simulate_generation()
@@ -110,9 +105,6 @@ void Game::simulate_generation()
 
 	for (const auto& c : *set_potential)
 	{
-		// Cell has changed, apply rules
-
-		// The secret of artificial life =================================================
 		int neighbours =
 			get_cell_state(Cell(c.x - 1, c.y - 1)) +
 			get_cell_state(Cell(c.x - 0, c.y - 1)) +
@@ -126,21 +118,18 @@ void Game::simulate_generation()
 
 		if (get_cell_state(c) == 1)
 		{
-			// if cell is alive and has 2 or 3 neighbours, cell lives on
+
 			bool cell_lives_on = (neighbours == 2 || neighbours == 3);
 
 			if (!cell_lives_on)
 			{
-				// Kill cell through activity omission		
 
-				// Neighbours are stimulated for computation next epoch												
 				for (int y = -1; y <= 1; y++)
 					for (int x = -1; x <= 1; x++)
 						set_potential_next->insert(c + Cell(x, y));
 			}
 			else
 			{
-				// No Change - Keep cell alive
 				set_active_next->insert(c);
 			}
 
@@ -153,14 +142,14 @@ void Game::simulate_generation()
 			{
 				set_active_next->insert(c);
 
-				// Neighbours are stimulated for computation next epoch												
+
 				for (int y = -1; y <= 1; y++)
 					for (int x = -1; x <= 1; x++)
 						set_potential_next->insert(c + Cell(x, y));
 			}
 			else
 			{
-				// No Change - Keep cell dead						
+
 			}
 		}
 
@@ -175,7 +164,6 @@ void Game::draw_cells()
 
 		SDL_FRect square{ coords.first, coords.second, GRID_SIZE, GRID_SIZE };
 		SDL_RenderFillRect(ren, &square);
-		//TODO
 	}
 }
 
