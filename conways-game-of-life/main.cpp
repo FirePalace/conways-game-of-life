@@ -1,4 +1,4 @@
-﻿// g++ sdl3_square.cpp -lSDL3
+﻿
 #include "game.h"
 
 int main(int, char**)

@@ -4,9 +4,6 @@
 
 /out/build/x64-debug
 /.vs
-/.idea/.gitignore
-/.idea/conways-game-of-life.iml
-/.idea/editor.xml
-/.idea/misc.xml
-/.idea/modules.xml
-/.idea/vcs.xml
+/.idea
+/conways-game-of-life/emsc.bat
+/conways-game-of-life/emsc_build
