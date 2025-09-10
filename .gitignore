@@ -4,3 +4,6 @@
 
 /out/build/x64-debug
 /.vs
+/.idea
+/conways-game-of-life/emsc.bat
+/conways-game-of-life/emsc_build
