@@ -12,9 +12,11 @@ class Game {
 	Camera cam;
 	bool dragging = false;
 	float drag_last_x = 0, drag_last_y = 0;
+	bool shutdown_requested = false;
 public:
 	Game(const char* title, int width, int height, SDL_WindowFlags flags);
 	void loop();
+	static void one_loop_iteration(void* userData);
 	void draw_frame() ;
 
 	void draw_grid() const;

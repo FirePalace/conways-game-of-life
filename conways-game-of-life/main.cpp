@@ -8,6 +8,6 @@ int main(int, char**)
 		return 1;
 	}
 
-	Game game("Game of life", 1248, 760, SDL_WINDOW_BORDERLESS);
+	Game game("Game of life", 1248, 760, SDL_WINDOW_RESIZABLE);
 	return 0;
 }

@@ -1,35 +1,69 @@
 #include "game.h"
-
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#include <emscripten/html5.h>
+#endif
 #include <algorithm>
 #include <iostream>
 
 Game::Game(const char* title, int width, int height, SDL_WindowFlags flags)
-	: win_height{ height }, win_width{ width },
-	win{ SDL_CreateWindow(title, width, height, flags) },
-	ren{ SDL_CreateRenderer(win, nullptr) }
+	: win_height{ height }, win_width{ width }
 {
+
+	win = SDL_CreateWindow(title, width, height, flags);
+	if (!win) {
+		SDL_Log("Window creation failed: %s", SDL_GetError());
+		std::cout << "Window creation failed\n";
+		return;
+	}
+
+	ren = SDL_CreateRenderer(win, nullptr);
+	if (!ren) {
+		SDL_Log("Renderer creation failed: %s", SDL_GetError());
+		std::cout << "Renderer creation failed\n";
+		return;
+	}
+	std::cout << "Entering loop\n";
 	loop();
 }
 
 void Game::loop()
 {
-	while (true) {
-		SDL_Event e;
-		while (SDL_PollEvent(&e)) {
-			if (e.type == SDL_EVENT_QUIT || e.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED)
-				return;
-			if (e.type == SDL_EVENT_MOUSE_BUTTON_DOWN || e.type == SDL_EVENT_MOUSE_BUTTON_UP)
-				handle_mouse_input(e);
-			if (e.type == SDL_EVENT_KEY_DOWN || e.type == SDL_EVENT_KEY_UP)
-				handle_keyboard_input(e.key);
-			if (e.type == SDL_EVENT_MOUSE_MOTION)
-				handle_mouse_motion(e);
-			if (e.type == SDL_EVENT_MOUSE_WHEEL)
-				handle_mouse_wheel(e);
-
-		}
-		draw_frame();
+	#ifdef __EMSCRIPTEN__
+	emscripten_set_main_loop_arg(one_loop_iteration, this, 0, true);
+	#else
+	while (!shutdown_requested) {
+		one_loop_iteration(this);
 	}
+	#endif
+	std::cout << "Exiting loop\n";
+}
+
+ void Game::one_loop_iteration(void* userData) {
+	Game* game = static_cast<Game*>(userData);
+	SDL_Event e;
+	while (SDL_PollEvent(&e)) {
+		if (e.type == SDL_EVENT_QUIT || e.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) {
+			game->shutdown_requested = true;
+		#ifdef __EMSCRIPTEN__
+			emscripten_cancel_main_loop();
+		#endif
+			return;
+		}
+
+		if (e.type == SDL_EVENT_MOUSE_BUTTON_DOWN || e.type == SDL_EVENT_MOUSE_BUTTON_UP)
+			game->handle_mouse_input(e);
+		else if (e.type == SDL_EVENT_KEY_DOWN || e.type == SDL_EVENT_KEY_UP)
+			game->handle_keyboard_input(e.key);
+		else if (e.type == SDL_EVENT_MOUSE_MOTION)
+			game->handle_mouse_motion(e);
+		else if (e.type == SDL_EVENT_MOUSE_WHEEL)
+			game->handle_mouse_wheel(e);
+
+	}
+	game->draw_frame();
+
+
 }
 
 void Game::draw_frame(){
@@ -38,10 +72,6 @@ void Game::draw_frame(){
 	draw_grid();
 
 	draw_cells();
-
-
-
-	// 3) present
 	SDL_RenderPresent(ren);
 }
 
@@ -238,7 +268,9 @@ int Game::get_cell_state(const Cell& c)
 
 
 Game::~Game() {
+	std::cout << "Destructor called"<< std::endl;
 	SDL_DestroyRenderer(ren);
 	SDL_DestroyWindow(win);
 	SDL_Quit();
+	std::cout << "Destructor called 2"<< std::endl;
 }
