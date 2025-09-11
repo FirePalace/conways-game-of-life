@@ -5,6 +5,7 @@
 #endif
 #include <algorithm>
 #include <iostream>
+#include <cmath>
 
 Game::Game(const char* title, int width, int height, SDL_WindowFlags flags)
 	: win_height{ height }, win_width{ width }
@@ -77,6 +78,7 @@ void Game::draw_frame(){
 
 void Game::draw_grid() const {
 	// compute visible world rect
+	if (cam.scale >= 6.0) {
 	SDL_SetRenderDrawColor(ren, 128, 128, 128, 0);
 	double wx0 = cam.x;
 	double wy0 = cam.y;
@@ -91,7 +93,7 @@ void Game::draw_grid() const {
 
 	// draw grid lines (optional)
 	// (skip if too dense to avoid overdraw at high zoom-out)
-	if (cam.scale >= 6.0) {
+
 		for (int x = x0; x <= x1; ++x) {
 			SDL_FPoint aW{ (float)x, (float)wy0 };
 			SDL_FPoint bW{ (float)x, (float)wy1 };
@@ -122,13 +124,29 @@ void Game::handle_mouse_input(const SDL_Event& e)
 
 		SDL_FPoint worldP = screen_to_world(cam, x, y);
 		Cell m{ static_cast<int>(std::floor(worldP.x)), static_cast<int>(std::floor(worldP.y)) };
-		set_active_next->insert(m);
-		set_active->insert(m);
+		if (!set_active->contains(m)) {
+			set_active_next->insert(m);
+			set_active->insert(m);
 
-		for (int y = -1; y <= 1; y++)
-			for (int x = -1; x <= 1; x++)
-				set_potential_next->insert(m + Cell(x, y));
+			for (int y = -1; y <= 1; y++)
+				for (int x = -1; x <= 1; x++)
+					set_potential_next->insert(m + Cell(x, y));
+		}
+		else {
+			set_active->erase(m);
+
+			set_active_next->erase(m);
+
+
+			set_potential->erase(m);
+			set_potential_next->erase(m);
+			for (int y = -2; y <= 2; y++)
+				for (int x = -2; x <= 2; x++){
+					set_potential_next->insert(m + Cell(x, y));
+				}
+		}
 	}
+
 
 	if (e.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
 		if (e.button.button == SDL_BUTTON_RIGHT) {
@@ -186,12 +204,12 @@ void Game::handle_mouse_wheel(const SDL_Event &e) {
 void Game::simulate_generation()
 {
 
-	*set_active = *set_active_next;
+	std::swap(set_active, set_active_next);
 	set_active_next->clear();
 	set_active_next->reserve(set_active->size());
+	std::cout << set_active->size() << std::endl;
 
-
-	*set_potential = *set_potential_next;
+	std::swap(set_potential, set_potential_next);
 	*set_potential_next = *set_active;
 
 	for (const auto& c : *set_potential)
@@ -219,12 +237,9 @@ void Game::simulate_generation()
 					for (int x = -1; x <= 1; x++)
 						set_potential_next->insert(c + Cell(x, y));
 			}
-			else
-			{
+			else {
 				set_active_next->insert(c);
 			}
-
-
 		}
 		else
 		{
@@ -268,9 +283,7 @@ int Game::get_cell_state(const Cell& c)
 
 
 Game::~Game() {
-	std::cout << "Destructor called"<< std::endl;
 	SDL_DestroyRenderer(ren);
 	SDL_DestroyWindow(win);
 	SDL_Quit();
-	std::cout << "Destructor called 2"<< std::endl;
 }
