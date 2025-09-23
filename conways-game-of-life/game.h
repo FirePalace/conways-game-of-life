@@ -24,6 +24,7 @@ public:
 	void handle_mouse_motion(const SDL_Event& e);
 	void handle_mouse_wheel(const SDL_Event& e);
 	void handle_keyboard_input(const SDL_KeyboardEvent& e);
+	void handle_window_event(const SDL_Event& e);
 
 	static void simulate_generation();
 	void draw_cells() const;

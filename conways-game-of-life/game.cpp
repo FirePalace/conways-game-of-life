@@ -7,6 +7,7 @@
 #include <iostream>
 #include <cmath>
 
+
 Game::Game(const char* title, int width, int height, SDL_WindowFlags flags)
 	: win_height{ height }, win_width{ width }
 {
@@ -60,6 +61,8 @@ void Game::loop()
 			game->handle_mouse_motion(e);
 		else if (e.type == SDL_EVENT_MOUSE_WHEEL)
 			game->handle_mouse_wheel(e);
+		else if (e.type == SDL_EVENT_WINDOW_RESIZED)
+			game->handle_window_event(e);
 
 	}
 	game->draw_frame();
@@ -77,22 +80,18 @@ void Game::draw_frame(){
 }
 
 void Game::draw_grid() const {
-	// compute visible world rect
+
 	if (cam.scale >= 6.0) {
 	SDL_SetRenderDrawColor(ren, 128, 128, 128, 0);
-	double wx0 = cam.x;
-	double wy0 = cam.y;
-	double wx1 = cam.x + win_width / cam.scale;
-	double wy1 = cam.y + win_height / cam.scale;
+	const double wx0 = cam.x;
+	const double wy0 = cam.y;
+	const double wx1 = cam.x + win_width / cam.scale;
+	const double wy1 = cam.y + win_height / cam.scale;
 
-	// choose grid cell range
-	int x0 = (int)std::floor(wx0);
-	int y0 = (int)std::floor(wy0);
-	int x1 = (int)std::ceil (wx1);
-	int y1 = (int)std::ceil (wy1);
-
-	// draw grid lines (optional)
-	// (skip if too dense to avoid overdraw at high zoom-out)
+	const int x0 = static_cast<int>(std::floor(wx0));
+	const int y0 = static_cast<int>(std::floor(wy0));
+	const int x1 = static_cast<int>(std::ceil(wx1));
+	const int y1 = static_cast<int>(std::ceil(wy1));
 
 		for (int x = x0; x <= x1; ++x) {
 			SDL_FPoint aW{ (float)x, (float)wy0 };
@@ -178,6 +177,15 @@ void Game::handle_keyboard_input(const SDL_KeyboardEvent& e)
 	if (e.key == SDLK_SPACE && e.type != SDL_EVENT_KEY_UP) {
 		simulate_generation();
 	}
+}
+
+void Game::handle_window_event(const SDL_Event &e) {
+	SDL_Window* window = SDL_GetWindowFromID(e.window.windowID);
+	if (win == window) {
+		win_width = e.window.data1;
+		win_height = e.window.data2;
+	}
+
 }
 
 void Game::handle_mouse_wheel(const SDL_Event &e) {
