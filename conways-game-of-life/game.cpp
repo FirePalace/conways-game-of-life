@@ -74,7 +74,9 @@ void Game::draw_frame(){
 	SDL_SetRenderDrawColor(ren, 20, 20, 20, 255);
 	SDL_RenderClear(ren);
 	draw_grid();
-
+	if (selected_pattern) {
+		draw_selected_pattern();
+	}
 	draw_cells();
 	SDL_RenderPresent(ren);
 }
@@ -117,19 +119,18 @@ void Game::draw_grid() const {
 void Game::handle_mouse_input(const SDL_Event& e)
 {
 	if (e.button.button == SDL_BUTTON_LEFT && !e.button.down) {
+
 		int x = e.button.x;
 		int y = e.button.y;
 
-
+		if (selected_pattern) {
+			place_selected_pattern(x,y);
+			return;
+		}
 		SDL_FPoint worldP = screen_to_world(cam, x, y);
 		Cell m{ static_cast<int>(std::floor(worldP.x)), static_cast<int>(std::floor(worldP.y)) };
 		if (!set_active->contains(m)) {
-			set_active_next->insert(m);
-			set_active->insert(m);
-
-			for (int y = -1; y <= 1; y++)
-				for (int x = -1; x <= 1; x++)
-					set_potential_next->insert(m + Cell(x, y));
+			place_cell(m);
 		}
 		else {
 			set_active->erase(m);
@@ -158,6 +159,14 @@ void Game::handle_mouse_input(const SDL_Event& e)
 		if (e.button.button == SDL_BUTTON_RIGHT) dragging = false;
 	}
 }
+void Game::place_cell(const Cell& m) {
+	set_active_next->insert(m);
+	set_active->insert(m);
+
+	for (int y = -1; y <= 1; y++)
+		for (int x = -1; x <= 1; x++)
+			set_potential_next->insert(m + Cell(x, y));
+}
 
 void Game::handle_mouse_motion(const SDL_Event& e) {
 
@@ -171,11 +180,16 @@ void Game::handle_mouse_motion(const SDL_Event& e) {
 		cam.x -= dx / cam.scale;
 		cam.y -= dy / cam.scale;
 	}
+
 }
 void Game::handle_keyboard_input(const SDL_KeyboardEvent& e)
 {
 	if (e.key == SDLK_SPACE && e.type != SDL_EVENT_KEY_UP) {
 		simulate_generation();
+	}
+
+	if (e.key == SDLK_1 && e.type == SDL_EVENT_KEY_DOWN) {
+		select_pattern(1);
 	}
 }
 
@@ -187,6 +201,45 @@ void Game::handle_window_event(const SDL_Event &e) {
 	}
 
 }
+#ifdef __EMSCRIPTEN__
+EMSCRIPTEN_KEEPALIVE
+#endif
+void Game::select_pattern(int p_number) {
+	selected_pattern = Pattern(p_number);
+}
+
+void Game::draw_selected_pattern() {
+	SDL_SetRenderDrawColor(ren, 128, 128, 128, 100);
+	float mouse_x, mouse_y;
+	SDL_GetMouseState(&mouse_x, &mouse_y);
+	SDL_FPoint worldP = screen_to_world(cam, mouse_x, mouse_y);
+
+	for (const auto& [x,y] : selected_pattern->pattern_info) {
+		SDL_FRect cellW{ (std::floor(worldP.x) +x), (std::floor(worldP.y) +y), 1.f, 1.f };
+
+		// transform to screen space using the camera
+		SDL_FRect cellS = world_to_screen(cam, cellW);
+
+		SDL_RenderFillRect(ren, &cellS);
+	}
+
+}
+void Game::place_selected_pattern(int x, int y) {
+
+	SDL_FPoint worldP = screen_to_world(cam, x, y);
+	for (const auto& [x,y] : selected_pattern->pattern_info) {
+
+		place_cell(Cell{ static_cast<int>(std::floor(worldP.x) + x), static_cast<int>(std::floor(worldP.y) +y) });
+	}
+	deselect_pattern();
+}
+#ifdef __EMSCRIPTEN__
+EMSCRIPTEN_KEEPALIVE
+#endif
+void Game::deselect_pattern() {
+	selected_pattern.reset();
+}
+
 
 void Game::handle_mouse_wheel(const SDL_Event &e) {
 	float mx, my;
@@ -215,9 +268,9 @@ void Game::simulate_generation()
 	std::swap(set_active, set_active_next);
 	set_active_next->clear();
 	set_active_next->reserve(set_active->size());
-	std::cout << set_active->size() << std::endl;
 
-	std::swap(set_potential, set_potential_next);
+
+	*set_potential = *set_potential_next;
 	*set_potential_next = *set_active;
 
 	for (const auto& c : *set_potential)

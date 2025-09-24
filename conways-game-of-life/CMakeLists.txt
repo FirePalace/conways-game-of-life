@@ -12,7 +12,9 @@ add_subdirectory(vendored/SDL EXCLUDE_FROM_ALL)
 if(EMSCRIPTEN)
   set(CMAKE_EXECUTABLE_SUFFIX ".html" CACHE INTERNAL "")
 endif()
-add_executable (conways-game-of-life "main.cpp" "game.cpp" "common.h" "cell.h" "cell.cpp" "camera.h")
+add_executable (conways-game-of-life "main.cpp" "game.cpp" "common.h" "cell.h" "cell.cpp" "camera.h"
+        patterns/pattern.h
+        patterns/pattern.cpp)
 
 target_link_libraries(conways-game-of-life PRIVATE SDL3::SDL3)
 set_property(TARGET conways-game-of-life PROPERTY CXX_STANDARD 20)
