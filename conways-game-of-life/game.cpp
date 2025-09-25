@@ -191,10 +191,38 @@ void Game::handle_keyboard_input(const SDL_KeyboardEvent& e)
 		std::cout << "Space down detected" << std::endl;
 		simulate_generation();
 	}
-
-	if (e.key == SDLK_1 && e.type == SDL_EVENT_KEY_DOWN) {
+	else if (e.key == SDLK_R && e.type != SDL_EVENT_KEY_DOWN) {
+		if (selected_pattern)
+			selected_pattern->rotate_pattern_90();
+	}
+	else if (e.key == SDLK_1 && e.type == SDL_EVENT_KEY_DOWN) {
 		select_pattern(1);
 	}
+	else if (e.key == SDLK_2 && e.type == SDL_EVENT_KEY_DOWN) {
+		select_pattern(2);
+	}
+	else if (e.key == SDLK_3 && e.type == SDL_EVENT_KEY_DOWN) {
+		select_pattern(3);
+	}
+	else if (e.key == SDLK_4 && e.type == SDL_EVENT_KEY_DOWN) {
+		select_pattern(4);
+	}
+	else if (e.key == SDLK_5 && e.type == SDL_EVENT_KEY_DOWN) {
+		select_pattern(5);
+	}
+	else if (e.key == SDLK_6 && e.type == SDL_EVENT_KEY_DOWN) {
+		select_pattern(6);
+	}
+	else if (e.key == SDLK_7 && e.type == SDL_EVENT_KEY_DOWN) {
+		select_pattern(7);
+	}
+	else if (e.key == SDLK_8 && e.type == SDL_EVENT_KEY_DOWN) {
+		select_pattern(8);
+	}
+	else if (e.key == SDLK_9 && e.type == SDL_EVENT_KEY_DOWN) {
+		deselect_pattern();
+	}
+
 }
 
 void Game::handle_window_event(const SDL_Event &e) {
@@ -209,8 +237,6 @@ void Game::handle_window_event(const SDL_Event &e) {
 void Game::select_pattern(int p_number) {
 	selected_pattern = Pattern(p_number);
 }
-
-
 
 void Game::draw_selected_pattern() {
 	SDL_SetRenderDrawColor(ren, 128, 128, 128, 100);
@@ -235,7 +261,6 @@ void Game::place_selected_pattern(int x, int y) {
 
 		place_cell(Cell{ static_cast<int>(std::floor(worldP.x) + x), static_cast<int>(std::floor(worldP.y) +y) });
 	}
-	deselect_pattern();
 }
 
 void Game::deselect_pattern() {
