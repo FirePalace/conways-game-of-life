@@ -2,6 +2,7 @@
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #include <emscripten/html5.h>
+#include <emscripten/bind.h>
 #endif
 #include <algorithm>
 #include <iostream>
@@ -12,6 +13,7 @@ Game::Game(const char* title, int width, int height, SDL_WindowFlags flags)
 	: win_height{ height }, win_width{ width }
 {
 
+	g_game = this;
 	win = SDL_CreateWindow(title, width, height, flags);
 	if (!win) {
 		SDL_Log("Window creation failed: %s", SDL_GetError());
@@ -73,6 +75,7 @@ void Game::loop()
 void Game::draw_frame(){
 	SDL_SetRenderDrawColor(ren, 20, 20, 20, 255);
 	SDL_RenderClear(ren);
+
 	draw_grid();
 	if (selected_pattern) {
 		draw_selected_pattern();
@@ -185,6 +188,7 @@ void Game::handle_mouse_motion(const SDL_Event& e) {
 void Game::handle_keyboard_input(const SDL_KeyboardEvent& e)
 {
 	if (e.key == SDLK_SPACE && e.type != SDL_EVENT_KEY_UP) {
+		std::cout << "Space down detected" << std::endl;
 		simulate_generation();
 	}
 
@@ -201,12 +205,12 @@ void Game::handle_window_event(const SDL_Event &e) {
 	}
 
 }
-#ifdef __EMSCRIPTEN__
-EMSCRIPTEN_KEEPALIVE
-#endif
+
 void Game::select_pattern(int p_number) {
 	selected_pattern = Pattern(p_number);
 }
+
+
 
 void Game::draw_selected_pattern() {
 	SDL_SetRenderDrawColor(ren, 128, 128, 128, 100);
@@ -233,13 +237,10 @@ void Game::place_selected_pattern(int x, int y) {
 	}
 	deselect_pattern();
 }
-#ifdef __EMSCRIPTEN__
-EMSCRIPTEN_KEEPALIVE
-#endif
+
 void Game::deselect_pattern() {
 	selected_pattern.reset();
 }
-
 
 void Game::handle_mouse_wheel(const SDL_Event &e) {
 	float mx, my;
@@ -319,7 +320,6 @@ void Game::simulate_generation()
 
 			}
 		}
-
 	}
 }
 
@@ -348,3 +348,19 @@ Game::~Game() {
 	SDL_DestroyWindow(win);
 	SDL_Quit();
 }
+
+#ifdef __EMSCRIPTEN__
+void deselect_pattern_wrapper() {
+	g_game->deselect_pattern();
+}
+
+void select_pattern_wrapper(int p_number) {
+	g_game->select_pattern(p_number);
+}
+
+EMSCRIPTEN_BINDINGS(my_module) {
+	emscripten::function("select_pattern", &select_pattern_wrapper);
+	emscripten::function("deselect_pattern", &deselect_pattern_wrapper);
+	emscripten::function("simulate_generation", &Game::simulate_generation);
+}
+#endif
