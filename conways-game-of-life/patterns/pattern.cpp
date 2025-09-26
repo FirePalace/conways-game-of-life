@@ -14,24 +14,23 @@ Pattern::Pattern(int p_number) {
             break;
         }
         case 2: {
-            load_HWSS();
-            break;
-        }
-        case 3: {
-            load_pulsar();
-            break;
-        }
-        case 4: {
-            load_pentadecathlon();
-            break;
-        }
-        case 5: {
             load_acorn();
             break;
         }
-
-        case 6: {
+        case 3: {
+            load_HWSS();
+            break;
+        }
+        case 4: {
             load_glider_gun();
+            break;
+        }
+        case 5: {
+            load_pulsar();
+            break;
+        }
+        case 6: {
+            load_pentadecathlon();
             break;
         }
         case 7: {

@@ -2,8 +2,6 @@
 #include <string>
 #include <vector>
 
-#include "SDL3/SDL_rect.h"
-
 class Pattern {
     void load_glider();
     void load_HWSS();
@@ -26,5 +24,4 @@ public:
     void rotate_pattern_90();
     std::vector<std::pair<int,int>> pattern_info;
     explicit Pattern( int p_number);
-    Pattern( int p_number, std::string rle_data);
 };
