@@ -15,8 +15,7 @@ endif()
 add_executable (conways-game-of-life "main.cpp" "game.cpp" "common.h" "cell.h" "cell.cpp" "camera.h"
         patterns/pattern.h
         patterns/pattern.cpp
-        patterns/turing_machine.cpp
-        patterns/calculator.cpp)
+)
 
 target_link_libraries(conways-game-of-life PRIVATE SDL3::SDL3)
 set_property(TARGET conways-game-of-life PROPERTY CXX_STANDARD 20)
