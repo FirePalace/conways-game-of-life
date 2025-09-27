@@ -351,22 +351,30 @@ void Game::simulate_generation()
 void Game::draw_cells() const {
 	SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
 	for (const Cell& c : *set_active) {
-		// world rectangle: one unit per cell
-		SDL_FRect cellW{ static_cast<float>(c.x), static_cast<float>(c.y), 1.f, 1.f };
-
-		// transform to screen space using the camera
-		SDL_FRect cellS = world_to_screen(cam, cellW);
-
-		SDL_RenderFillRect(ren, &cellS);
+		if (is_point_in_viewport(c.x, c.y)) {
+			SDL_FRect cellW{ static_cast<float>(c.x), static_cast<float>(c.y), 1.f, 1.f };
+			SDL_FRect cellS = world_to_screen(cam, cellW);
+			SDL_RenderFillRect(ren, &cellS);
+		}
 	}
+}
+
+bool Game::is_point_in_viewport(int x_point, int y_point) const {
+	const int x0 = static_cast<int>(std::floor(cam.x));
+	const int y0 = static_cast<int>(std::floor(cam.y));
+	const int x1 = static_cast<int>(std::ceil(cam.x + win_width / cam.scale));
+	const int y1 = static_cast<int>(std::ceil(cam.y + win_height / cam.scale));
+
+
+	return (x_point >= x0-GRID_SIZE && x_point <= x1+GRID_SIZE &&
+			y_point >= y0-GRID_SIZE && y_point <= y1+GRID_SIZE);
+
 }
 
 int Game::get_cell_state(const Cell& c)
 {
 	return set_active->contains(c) ? 1 : 0;;
 }
-
-
 
 Game::~Game() {
 	SDL_DestroyRenderer(ren);

@@ -40,7 +40,7 @@ public:
 
 	static void simulate_generation();
 	void draw_cells() const;
-
+	bool is_point_in_viewport(int x_point, int y_point) const;
 	static int get_cell_state(const Cell& c);
 
 
