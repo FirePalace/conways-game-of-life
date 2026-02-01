@@ -138,9 +138,6 @@ void Game::handle_mouse_input(const SDL_Event& e)
 		else {
 			set_active->erase(m);
 
-			set_active_next->erase(m);
-
-
 			set_potential->erase(m);
 			set_potential_next->erase(m);
 			for (int y = -2; y <= 2; y++)
@@ -163,7 +160,6 @@ void Game::handle_mouse_input(const SDL_Event& e)
 	}
 }
 void Game::place_cell(const Cell& m) {
-	set_active_next->insert(m);
 	set_active->insert(m);
 
 	for (int y = -1; y <= 1; y++)
@@ -290,11 +286,8 @@ void Game::handle_mouse_wheel(const SDL_Event &e) {
 
 void Game::simulate_generation()
 {
-
-	std::swap(set_active, set_active_next);
 	set_active_next->clear();
 	set_active_next->reserve(set_active->size());
-
 
 	*set_potential = *set_potential_next;
 	*set_potential_next = *set_active;
@@ -346,6 +339,7 @@ void Game::simulate_generation()
 			}
 		}
 	}
+	std::swap(set_active, set_active_next);
 }
 
 void Game::draw_cells() const {

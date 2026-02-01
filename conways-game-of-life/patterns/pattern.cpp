@@ -216,8 +216,7 @@ void Pattern::load_glider_gun() {
 
     if (!file.is_open()) {
         std::filesystem::path cwd = std::filesystem::current_path();
-        std::cerr << "Error: Could not open file " << filename << " || "<< "Current working directory: " << cwd <<std::endl;
-        return content;
+        throw std::runtime_error("Could not open file " + filename + " || Current working directory: " + cwd.string());
     }
 
     std::stringstream buffer;
