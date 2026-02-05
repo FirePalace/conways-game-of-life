@@ -48,7 +48,6 @@ Pattern::Pattern(int p_number) {
 }
 
 void Pattern::load_glider() {
-
     pattern_info.emplace_back(-1, 1);
     pattern_info.emplace_back(-1, 0);
     pattern_info.emplace_back(-1, -1);
@@ -156,7 +155,6 @@ void Pattern::load_acorn() {
 }
 
 void Pattern::load_glider_gun() {
-    // Gosper Glider Gun pattern (adjusted coordinates)
     pattern_info.emplace_back(-18, -1);
     pattern_info.emplace_back(-17, -1);
     pattern_info.emplace_back(-18, 0);
@@ -199,7 +197,8 @@ void Pattern::load_glider_gun() {
     pattern_info.emplace_back(17, -3);
     pattern_info.emplace_back(17, -2);
 }
-[[nodiscard]] std::vector<std::string> splitStringByNewline(const std::string& input) {
+
+[[nodiscard]] std::vector<std::string> splitStringByNewline(const std::string &input) {
     std::vector<std::string> lines;
     std::stringstream ss(input);
     std::string line;
@@ -210,7 +209,8 @@ void Pattern::load_glider_gun() {
 
     return lines;
 }
- [[nodiscard]] std::vector<std::string> readFileToString(const std::string& filename) {
+
+[[nodiscard]] std::vector<std::string> readFileToString(const std::string &filename) {
     std::ifstream file(filename);
     std::vector<std::string> content;
 
@@ -226,17 +226,21 @@ void Pattern::load_glider_gun() {
     file.close();
     return content;
 }
+
 static std::string ltrim(const std::string &s) {
     size_t start = s.find_first_not_of(" \t\r\n");
     return (start == std::string::npos) ? std::string() : s.substr(start);
 }
-static  std::string rtrim(const std::string &s) {
+
+static std::string rtrim(const std::string &s) {
     size_t end = s.find_last_not_of(" \t\r\n");
     return (end == std::string::npos) ? std::string() : s.substr(0, end + 1);
 }
-static  std::string trim(const std::string &s) {
+
+static std::string trim(const std::string &s) {
     return rtrim(ltrim(s));
 }
+
 static std::vector<std::string> split(const std::string &s, char delim) {
     std::vector<std::string> out;
     std::stringstream ss(s);
@@ -244,13 +248,10 @@ static std::vector<std::string> split(const std::string &s, char delim) {
     while (std::getline(ss, item, delim)) out.push_back(item);
     return out;
 }
-void Pattern::load_pattern_from_file(const std::vector<std::string>& rle_data) {
-    // Replace the raw string below with your RLE data
 
-    // Trim and split into lines (similar to Python's rle_data.strip().splitlines())
-
+void Pattern::load_pattern_from_file(const std::vector<std::string> &rle_data) {
     if (rle_data.empty()) {
-        throw "No RLE data provided.\n";
+        throw std::runtime_error("No RLE data provided.\n");
     }
 
     std::string header_line = trim(rle_data[0]);
@@ -259,33 +260,33 @@ void Pattern::load_pattern_from_file(const std::vector<std::string>& rle_data) {
 
 
     if (parts.size() < 2) {
-        throw "Header doesn't contain width and height.\n";
+        throw std::runtime_error("Header doesn't contain width and height.\n");
     }
     auto part0 = split(parts[0], '=');
     auto part1 = split(parts[1], '=');
     if (part0.size() < 2 || part1.size() < 2) {
-        throw "Header parts malformed.\n";
+        throw std::runtime_error("Header parts malformed.\n");
     }
     int width = std::stoi(trim(part0[1]));
     int height = std::stoi(trim(part1[1]));
 
 
     std::vector<std::string> pattern_lines;
-    for (size_t i = 0; i < rle_data.size(); ++i) {
-        std::string ln = trim(rle_data[i]);
+    for (const auto &i: rle_data) {
+        std::string ln = trim(i);
         if (!ln.empty() && ln[0] == 'x') continue;
         pattern_lines.push_back(ln);
     }
 
     std::string rle_str;
-    for (const auto &pl : pattern_lines) rle_str += pl;
+    for (const auto &pl: pattern_lines) rle_str += pl;
 
     int x_pos = 0;
     int y_pos = 0;
     std::string num_buf;
-    std::vector<std::pair<int,int>> coords;
+    std::vector<std::pair<int, int> > coords;
 
-    for (char ch : rle_str) {
+    for (char ch: rle_str) {
         if (std::isdigit(static_cast<unsigned char>(ch))) {
             num_buf.push_back(ch);
         } else if (ch == 'o' || ch == 'b') {
@@ -305,7 +306,6 @@ void Pattern::load_pattern_from_file(const std::vector<std::string>& rle_data) {
         } else if (ch == '!') {
             break;
         } else {
-
         }
     }
 
@@ -314,24 +314,24 @@ void Pattern::load_pattern_from_file(const std::vector<std::string>& rle_data) {
 
     pattern_info.reserve(coords.size());
 
-    for (const auto [x,y] : coords) {
-        pattern_info.emplace_back(x- offset_x, y - offset_y);
+    for (const auto [x,y]: coords) {
+        pattern_info.emplace_back(x - offset_x, y - offset_y);
     }
 }
 
 void Pattern::load_calculator() {
-    load_pattern_from_file( splitStringByNewline( readFileToString("calculator.txt")[0]));
-
+    load_pattern_from_file(splitStringByNewline(readFileToString("calculator.txt")[0]));
 }
+
 void Pattern::load_turing_machine() {
-    load_pattern_from_file( splitStringByNewline(readFileToString("turing.txt")[0]));
+    load_pattern_from_file(splitStringByNewline(readFileToString("turing.txt")[0]));
 }
 
 
 void Pattern::rotate_pattern_90() {
-    for ( auto& [x,y] : pattern_info) {
+    for (auto &[x,y]: pattern_info) {
         int tempx = x;
-        x= -y;
-        y= tempx;
+        x = -y;
+        y = tempx;
     }
 }

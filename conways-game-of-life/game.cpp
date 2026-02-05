@@ -67,26 +67,23 @@ void Game::one_loop_iteration(void *userData) {
 	game->draw_frame();
 }
 
-void Game::handle_simulation_speed() {
+void Game::handle_simulation_speed() const {
 	auto now = std::chrono::steady_clock::now();
 	std::chrono::duration<double> delta = now - last_simulation;
 	switch (simulation_speed) {
 		case 1:
 			if (delta >= std::chrono::seconds(1)) {
 				simulate_generation();
-				last_simulation = now;
 			}
 			break;
 		case 2:
 			if (delta >= std::chrono::milliseconds(500)) {
 				simulate_generation();
-				last_simulation = now;
 			}
 			break;
 		case 3:
 			if (delta >= std::chrono::milliseconds(250)) {
 				simulate_generation();
-				last_simulation = now;
 			}
 		default:
 			return;
@@ -118,21 +115,29 @@ void Game::draw_grid() const {
 		const int x1 = static_cast<int>(std::ceil(wx1));
 		const int y1 = static_cast<int>(std::ceil(wy1));
 
-		for (int x = x0; x <= x1; ++x) {
-			SDL_FPoint aW{(float) x, (float) wy0};
-			SDL_FPoint bW{(float) x, (float) wy1};
+		for (int x = x0; x <= x1; x++) {
+			SDL_FPoint aW{static_cast<float>(x), static_cast<float>(wy0)};
+			SDL_FPoint bW{static_cast<float>(x), static_cast<float>(wy1)};
 
-			SDL_FPoint aS{(float) ((aW.x - cam.x) * cam.scale), (float) ((aW.y - cam.y) * cam.scale)};
-			SDL_FPoint bS{(float) ((bW.x - cam.x) * cam.scale), (float) ((bW.y - cam.y) * cam.scale)};
+			SDL_FPoint aS{
+				static_cast<float>((aW.x - cam.x) * cam.scale), static_cast<float>((aW.y - cam.y) * cam.scale)
+			};
+			SDL_FPoint bS{
+				static_cast<float>((bW.x - cam.x) * cam.scale), static_cast<float>((bW.y - cam.y) * cam.scale)
+			};
 
 			SDL_RenderLine(ren, aS.x, aS.y, bS.x, bS.y);
 		}
 		for (int y = y0; y <= y1; ++y) {
-			SDL_FPoint aW{(float) wx0, (float) y};
-			SDL_FPoint bW{(float) wx1, (float) y};
+			SDL_FPoint aW{static_cast<float>(wx0), static_cast<float>(y)};
+			SDL_FPoint bW{static_cast<float>(wx1), static_cast<float>(y)};
 
-			SDL_FPoint aS{(float) ((aW.x - cam.x) * cam.scale), (float) ((aW.y - cam.y) * cam.scale)};
-			SDL_FPoint bS{(float) ((bW.x - cam.x) * cam.scale), (float) ((bW.y - cam.y) * cam.scale)};
+			SDL_FPoint aS{
+				static_cast<float>((aW.x - cam.x) * cam.scale), static_cast<float>((aW.y - cam.y) * cam.scale)
+			};
+			SDL_FPoint bS{
+				static_cast<float>((bW.x - cam.x) * cam.scale), static_cast<float>((bW.y - cam.y) * cam.scale)
+			};
 
 			SDL_RenderLine(ren, aS.x, aS.y, bS.x, bS.y);
 		}
@@ -141,25 +146,25 @@ void Game::draw_grid() const {
 
 void Game::handle_mouse_input(const SDL_Event &e) {
 	if (e.button.button == SDL_BUTTON_LEFT && !e.button.down) {
-		int x = e.button.x;
-		int y = e.button.y;
+		const int x = static_cast<int>(e.button.x);
+		const int y = static_cast<int>(e.button.y);
 
 		if (selected_pattern) {
 			place_selected_pattern(x, y);
 			return;
 		}
 		SDL_FPoint worldP = screen_to_world(cam, x, y);
-		Cell m{static_cast<int>(std::floor(worldP.x)), static_cast<int>(std::floor(worldP.y))};
-		if (!set_active->contains(m)) {
+		if (Cell m{static_cast<int>(std::floor(worldP.x)), static_cast<int>(std::floor(worldP.y))};
+			!set_active->contains(m)) {
 			place_cell(m);
 		} else {
 			set_active->erase(m);
 
 			set_potential->erase(m);
 			set_potential_next->erase(m);
-			for (int y = -2; y <= 2; y++)
-				for (int x = -2; x <= 2; x++) {
-					set_potential_next->insert(m + Cell(x, y));
+			for (int i = -2; i <= 2; i++)
+				for (int j = -2; j <= 2; j++) {
+					set_potential_next->insert(m + Cell(i, j));
 				}
 		}
 	}
@@ -187,12 +192,11 @@ void Game::place_cell(const Cell &m) {
 
 void Game::handle_mouse_motion(const SDL_Event &e) {
 	if (dragging) {
-		int dx = e.motion.x - drag_last_x;
-		int dy = e.motion.y - drag_last_y;
+		const int dx = static_cast<int>(e.motion.x - drag_last_x);
+		const int dy = static_cast<int>(e.motion.y - drag_last_y);
 		drag_last_x = e.motion.x;
 		drag_last_y = e.motion.y;
 
-		// screen delta -> world delta
 		cam.x -= dx / cam.scale;
 		cam.y -= dy / cam.scale;
 	}
@@ -205,7 +209,9 @@ void Game::handle_keyboard_input(const SDL_KeyboardEvent &e) {
 	} else if (e.key == SDLK_R && e.type != SDL_EVENT_KEY_DOWN) {
 		if (selected_pattern)
 			selected_pattern->rotate_pattern_90();
-	} else if (e.key == SDLK_1 && e.type == SDL_EVENT_KEY_DOWN) {
+	}
+#ifndef __EMSCRIPTEN__
+	else if (e.key == SDLK_1 && e.type == SDL_EVENT_KEY_DOWN) {
 		select_pattern(1);
 	} else if (e.key == SDLK_2 && e.type == SDL_EVENT_KEY_DOWN) {
 		select_pattern(2);
@@ -224,6 +230,7 @@ void Game::handle_keyboard_input(const SDL_KeyboardEvent &e) {
 	} else if (e.key == SDLK_9 && e.type == SDL_EVENT_KEY_DOWN) {
 		deselect_pattern();
 	}
+#endif
 }
 
 void Game::handle_window_event(const SDL_Event &e) {
@@ -242,12 +249,13 @@ void Game::draw_selected_pattern() {
 	SDL_SetRenderDrawColor(ren, 128, 128, 128, 100);
 	float mouse_x, mouse_y;
 	SDL_GetMouseState(&mouse_x, &mouse_y);
-	SDL_FPoint worldP = screen_to_world(cam, mouse_x, mouse_y);
+	SDL_FPoint worldP = screen_to_world(cam, static_cast<int>(mouse_x), static_cast<int>(mouse_y));
 
 	for (const auto &[x,y]: selected_pattern->pattern_info) {
-		SDL_FRect cellW{(std::floor(worldP.x) + x), (std::floor(worldP.y) + y), 1.f, 1.f};
+		const SDL_FRect cellW{
+			(std::floor(worldP.x) + static_cast<float>(x)), (std::floor(worldP.y) + static_cast<float>(y)), 1.f, 1.f
+		};
 
-		// transform to screen space using the camera
 		SDL_FRect cellS = world_to_screen(cam, cellW);
 
 		SDL_RenderFillRect(ren, &cellS);
@@ -257,7 +265,10 @@ void Game::draw_selected_pattern() {
 void Game::place_selected_pattern(int x, int y) {
 	SDL_FPoint worldP = screen_to_world(cam, x, y);
 	for (const auto &[x,y]: selected_pattern->pattern_info) {
-		place_cell(Cell{static_cast<int>(std::floor(worldP.x) + x), static_cast<int>(std::floor(worldP.y) + y)});
+		place_cell(Cell{
+			static_cast<int>(std::floor(worldP.x) + static_cast<float>(x)),
+			static_cast<int>(std::floor(worldP.y) + static_cast<float>(y))
+		});
 	}
 }
 
@@ -269,16 +280,14 @@ void Game::handle_mouse_wheel(const SDL_Event &e) {
 	float mx, my;
 	SDL_GetMouseState(&mx, &my);
 
-	SDL_FPoint before = screen_to_world(cam, mx, my);
+	SDL_FPoint before = screen_to_world(cam, static_cast<int>(mx), static_cast<int>(my));
 
-	// choose your zoom step (1.1 feels nice)
 	double factor = (e.wheel.y > 0) ? 1.1 : (e.wheel.y < 0 ? 1.0 / 1.1 : 1.0);
 	double new_scale = std::clamp(cam.scale * factor, cam.min_scale, cam.max_scale);
 
-	// re-anchor: keep the world point under the cursor stationary
 	if (new_scale != cam.scale) {
 		cam.scale = new_scale;
-		SDL_FPoint after = screen_to_world(cam, mx, my);
+		SDL_FPoint after = screen_to_world(cam, static_cast<int>(mx), static_cast<int>(my));
 		cam.x += (before.x - after.x);
 		cam.y += (before.y - after.y);
 	}
@@ -328,6 +337,7 @@ void Game::simulate_generation() {
 		}
 	}
 	std::swap(set_active, set_active_next);
+	g_game->last_simulation = std::chrono::steady_clock::now();
 }
 
 void Game::draw_cells() const {
@@ -353,7 +363,7 @@ bool Game::is_point_in_viewport(int x_point, int y_point) const {
 }
 
 int Game::get_cell_state(const Cell &c) {
-	return set_active->contains(c) ? 1 : 0;;
+	return set_active->contains(c) ? 1 : 0;
 }
 
 void Game::set_simulation_speed(int speed) {

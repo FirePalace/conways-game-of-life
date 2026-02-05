@@ -27,7 +27,7 @@ public:
 
 	static void one_loop_iteration(void *userData);
 
-	void handle_simulation_speed();
+	void handle_simulation_speed() const;
 
 	void draw_frame();
 
@@ -41,7 +41,7 @@ public:
 
 	void handle_keyboard_input(const SDL_KeyboardEvent &e);
 
-	void place_cell(const Cell &m);
+	static void place_cell(const Cell &m);
 
 	void handle_window_event(const SDL_Event &e);
 
@@ -59,7 +59,7 @@ public:
 
 	void draw_cells() const;
 
-	bool is_point_in_viewport(int x_point, int y_point) const;
+	[[nodiscard]] bool is_point_in_viewport(int x_point, int y_point) const;
 
 	static int get_cell_state(const Cell &c);
 
