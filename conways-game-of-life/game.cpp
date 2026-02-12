@@ -25,7 +25,6 @@ Game::Game(const char *title, int width, int height, SDL_WindowFlags flags)
 		std::cout << "Renderer creation failed\n";
 		return;
 	}
-	std::cout << "Entering loop\n";
 	loop();
 }
 
@@ -37,7 +36,6 @@ void Game::loop() {
 		one_loop_iteration(this);
 	}
 #endif
-	std::cout << "Exiting loop\n";
 }
 
 void Game::one_loop_iteration(void *userData) {
@@ -204,7 +202,6 @@ void Game::handle_mouse_motion(const SDL_Event &e) {
 
 void Game::handle_keyboard_input(const SDL_KeyboardEvent &e) {
 	if (e.key == SDLK_SPACE && e.type != SDL_EVENT_KEY_UP) {
-		std::cout << "Space down detected" << std::endl;
 		simulate_generation();
 	} else if (e.key == SDLK_R && e.type != SDL_EVENT_KEY_DOWN) {
 		if (selected_pattern)
@@ -368,7 +365,6 @@ int Game::get_cell_state(const Cell &c) {
 
 void Game::set_simulation_speed(int speed) {
 	simulation_speed = speed;
-	std::cout << "simulation speed: " << simulation_speed << std::endl;
 }
 
 Game::~Game() {
