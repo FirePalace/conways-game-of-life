@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <iostream>
 #include <cmath>
+#include <filesystem>
 
 
 Game::Game(const char *title, int width, int height, SDL_WindowFlags flags)
@@ -25,6 +26,10 @@ Game::Game(const char *title, int width, int height, SDL_WindowFlags flags)
 		std::cout << "Renderer creation failed\n";
 		return;
 	}
+#ifndef __EMSCRIPTEN__
+	std::filesystem::path newDir = R"(..\..\conways-game-of-life\patterns\rle)";
+	std::filesystem::current_path(newDir);
+#endif
 	loop();
 }
 
