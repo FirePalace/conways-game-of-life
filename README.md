@@ -12,18 +12,6 @@ Conway's Game of Life is a zero-player game that simulates cellular automata on 
 
 This implementation provides an interactive interface for exploring these patterns with smooth camera controls and a variety of pre-built patterns.
 
-## Features
-
-- Interactive cell placement and removal via mouse clicks
-- Camera pan and zoom controls
-- Multiple simulation speeds
-- Manual step-by-step simulation
-- Eight pre-built patterns including gliders, oscillators, and complex machines
-- Pattern rotation support
-- Grid visualization at appropriate zoom levels
-- Web build support via Emscripten
-- Efficient sparse grid implementation using hash sets
-
 ## Requirements
 
 - CMake 3.16 or higher
@@ -97,15 +85,6 @@ The following patterns are available:
 6. Pentadecathlon
 7. Prime Calculator
 8. Turing Machine
-
-## Simulation Speed
-
-The simulation can run at three different speeds:
-- Speed 1: 1 generation per second
-- Speed 2: 2 generations per second
-- Speed 3: 4 generations per second
-
-Speed control is available through the Emscripten bindings for web builds, or can be set programmatically.
 
 ## Architecture
 
