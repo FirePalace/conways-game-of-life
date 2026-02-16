@@ -130,6 +130,9 @@ This project is licensed under the MIT License. See the LICENSE.txt file for det
 
 ## Acknowledgments
 
-- SDL3 for cross-platform multimedia support
-- The Conway's Game of Life community for pattern designs and documentation
-- Pattern creators credited in the source code comments
+- The (p,p+8)  prime calculator was created by Nathaniel Johnston. It is based on the cousin prime calculator, which is
+  based
+  on Dean Hickerson's primer
+  pattern. Constructed on August 2, 2009 with calcyman.
+
+- The Turing Machine was designed by Paul Rendell 02/April/00. http://rendell-attic.org/gol/tm.htm
