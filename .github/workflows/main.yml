@@ -3,7 +3,7 @@ name: Build and Deploy WASM
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   build:
@@ -37,7 +37,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.WEBSITE_REPO_TOKEN }}
           WEBSITE_REPO: FirePalace/firepalace.github.io  
-          TARGET_DIR: public/patterns                
+          TARGET_DIR: public             
         run: |
           # Configure git
           git config --global user.email "actions@github.com"
@@ -47,8 +47,8 @@ jobs:
           git clone --branch dev https://x-access-token:${GH_TOKEN}@github.com/${WEBSITE_REPO}.git website-repo
 
           # Copy the build artifacts
-          cp build/game-of-life.wasm website-repo/${TARGET_DIR}/
-          cp build/game-of-life.js  website-repo/${TARGET_DIR}/
+          cp conways-game-of-life/game-of-life.wasm website-repo/${TARGET_DIR}/
+          cp conways-game-of-life/game-of-life.js   website-repo/${TARGET_DIR}/
 
           # Commit and push if there are changes
           cd website-repo
