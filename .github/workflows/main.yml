@@ -29,8 +29,8 @@ jobs:
           -s ENVIRONMENT=web \
           -s DISABLE_EXCEPTION_CATCHING=0 \
           -O3 -std=c++20 \
-          --embed-file patterns\rle\turing.txt \
-          --embed-file patterns\rle\calculator.txt \
+          --embed-file patterns/rle/turing.txt \
+          --embed-file patterns/rle/calculator.txt \
           -o game-of-life.js
 
       - name: Deploy to website repo
