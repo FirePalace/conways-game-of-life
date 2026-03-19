@@ -65,6 +65,5 @@ public:
 
 	void set_simulation_speed(int speed);
 
-
 	~Game();
 };
