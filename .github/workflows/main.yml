@@ -36,8 +36,8 @@ jobs:
       - name: Deploy to website repo
         env:
           GH_TOKEN: ${{ secrets.WEBSITE_REPO_TOKEN }}
-          WEBSITE_REPO: FirePalace/firepalace.github.io   # ← change this
-          TARGET_DIR: public/patterns                # ← change this
+          WEBSITE_REPO: FirePalace/firepalace.github.io  
+          TARGET_DIR: public/patterns                
         run: |
           # Configure git
           git config --global user.email "actions@github.com"
