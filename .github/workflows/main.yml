@@ -1,0 +1,57 @@
+name: Build and Deploy WASM
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout C++ repo
+        uses: actions/checkout@v4
+
+      - name: Setup Emscripten
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: latest
+
+      - name: Build with Emscripten
+        run: |
+          cd conways-game-of-life
+          em++ -lembind main.cpp game.cpp cell.cpp patterns/pattern.cpp \
+          -s USE_SDL=3 \
+          -s INITIAL_MEMORY=64MB \
+          -s ALLOW_MEMORY_GROWTH=1 \
+          -s EXIT_RUNTIME=0 \
+          -s ENVIRONMENT=web \
+          -s DISABLE_EXCEPTION_CATCHING=0 \
+          -O3 -std=c++20 \
+          --embed-file turing.txt \
+          --embed-file calculator.txt \
+          -o game-of-life.js
+
+      - name: Deploy to website repo
+        env:
+          GH_TOKEN: ${{ secrets.WEBSITE_REPO_TOKEN }}
+          WEBSITE_REPO: FirePalace/firepalace.github.io   # ← change this
+          TARGET_DIR: public/patterns                # ← change this
+        run: |
+          # Configure git
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+
+          # Clone the website repo
+          git clone --branch dev https://x-access-token:${GH_TOKEN}@github.com/${WEBSITE_REPO}.git website-repo
+
+          # Copy the build artifacts
+          cp build/game-of-life.wasm website-repo/${TARGET_DIR}/
+          cp build/game-of-life.js  website-repo/${TARGET_DIR}/
+
+          # Commit and push if there are changes
+          cd website-repo
+          git add ${TARGET_DIR}/
+          git diff --cached --quiet || git commit -m "chore: update WASM build from cpp-repo@${{ github.sha }}"
+          git push
