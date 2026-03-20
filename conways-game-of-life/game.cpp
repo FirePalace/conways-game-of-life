@@ -10,6 +10,7 @@
 #include <filesystem>
 #include <cstdint>
 #include <array>
+#include <vector>
 #include <unordered_map>
 
 
@@ -362,12 +363,32 @@ void Game::simulate_generation() {
 
 void Game::draw_cells() const {
 	SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
-	for (const Cell &c: *set_active) {
-		if (is_point_in_viewport(c.x, c.y)) {
-			SDL_FRect cellW{static_cast<float>(c.x), static_cast<float>(c.y), 1.f, 1.f};
-			SDL_FRect cellS = world_to_screen(cam, cellW);
-			SDL_RenderFillRect(ren, &cellS);
+
+	const int vx0 = static_cast<int>(std::floor(cam.x)) - GRID_SIZE;
+	const int vy0 = static_cast<int>(std::floor(cam.y)) - GRID_SIZE;
+	const int vx1 = static_cast<int>(std::ceil(cam.x + win_width / cam.scale)) + GRID_SIZE;
+	const int vy1 = static_cast<int>(std::ceil(cam.y + win_height / cam.scale)) + GRID_SIZE;
+
+	const auto scale = static_cast<float>(cam.scale);
+	const auto cam_x = static_cast<float>(cam.x);
+	const auto cam_y = static_cast<float>(cam.y);
+
+	std::vector<SDL_FRect> rects;
+	rects.reserve(set_active->size());
+
+	for (const Cell &c : *set_active) {
+		if (c.x >= vx0 && c.x <= vx1 && c.y >= vy0 && c.y <= vy1) {
+			rects.push_back({
+				(static_cast<float>(c.x) - cam_x) * scale,
+				(static_cast<float>(c.y) - cam_y) * scale,
+				scale,
+				scale
+			});
 		}
+	}
+
+	if (!rects.empty()) {
+		SDL_RenderFillRects(ren, rects.data(), static_cast<int>(rects.size()));
 	}
 }
 
