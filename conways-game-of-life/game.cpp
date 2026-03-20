@@ -71,6 +71,7 @@ void Game::one_loop_iteration(void *userData) {
 	}
 	game->handle_simulation_speed();
 	game->draw_frame();
+	std::cout << game->alive_cell_count << std::endl;
 }
 
 void Game::handle_simulation_speed() const {
@@ -165,7 +166,9 @@ void Game::handle_mouse_input(const SDL_Event &e) {
 			!set_active->contains(m)) {
 			place_cell(m);
 		} else {
-			set_active->erase(m);
+			if (set_active->erase(m) > 0 && alive_cell_count > 0) {
+				alive_cell_count--;
+			}
 
 			set_potential->erase(m);
 			set_potential_next->erase(m);
@@ -190,7 +193,10 @@ void Game::handle_mouse_input(const SDL_Event &e) {
 }
 
 void Game::place_cell(const Cell &m) {
-	set_active->insert(m);
+	const auto insert_result = set_active->insert(m);
+	if (insert_result.second && g_game != nullptr) {
+		g_game->alive_cell_count++;
+	}
 
 	for (int y = -1; y <= 1; y++)
 		for (int x = -1; x <= 1; x++)
@@ -319,20 +325,20 @@ void Game::simulate_generation() {
 	std::unordered_map<Cell, uint8_t> neighbour_counts;
 	neighbour_counts.reserve(set_active->size() * 8);
 
-	for (const Cell &alive_cell : *set_active) {
-		for (const Cell &offset : NEIGHBOR_OFFSETS) {
+	for (const Cell &alive_cell: *set_active) {
+		for (const Cell &offset: NEIGHBOR_OFFSETS) {
 			++neighbour_counts[alive_cell + offset];
 		}
 	}
 
-	for (const auto &[cell, neighbours] : neighbour_counts) {
+	for (const auto &[cell, neighbours]: neighbour_counts) {
 		const bool is_alive = set_active->contains(cell);
 		const bool survives = is_alive && (neighbours == 2 || neighbours == 3);
 		const bool is_born = !is_alive && neighbours == 3;
 
 		if (survives || is_born) {
 			set_active_next->insert(cell);
-			for (const Cell &offset : POTENTIAL_OFFSETS) {
+			for (const Cell &offset: POTENTIAL_OFFSETS) {
 				set_potential_next->insert(cell + offset);
 			}
 		}
@@ -340,6 +346,7 @@ void Game::simulate_generation() {
 
 	set_potential->swap(*set_potential_next);
 	std::swap(set_active, set_active_next);
+	g_game->alive_cell_count = static_cast<int>(set_active->size());
 	g_game->last_simulation = std::chrono::steady_clock::now();
 }
 
@@ -373,6 +380,10 @@ void Game::set_simulation_speed(int speed) {
 	simulation_speed = speed;
 }
 
+int Game::get_alive_cell_count() const {
+	return alive_cell_count;
+}
+
 Game::~Game() {
 	SDL_DestroyRenderer(ren);
 	SDL_DestroyWindow(win);
@@ -391,9 +402,14 @@ void set_simulation_speed_wrapper(int speed) {
 	g_game->set_simulation_speed(speed);
 }
 
+int get_alive_cell_count_wrapper() {
+	return g_game->get_alive_cell_count();
+}
+
 EMSCRIPTEN_BINDINGS(my_module) {
 	emscripten::function("select_pattern", &select_pattern_wrapper);
 	emscripten::function("deselect_pattern", &deselect_pattern_wrapper);
 	emscripten::function("set_simulation_speed", &set_simulation_speed_wrapper);
+	emscripten::function("get_alive_cell_count", &get_alive_cell_count_wrapper);
 }
 #endif

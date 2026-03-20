@@ -18,6 +18,7 @@ class Game {
 	bool shutdown_requested = false;
 	std::optional<Pattern> selected_pattern;
 	int simulation_speed = 0;
+	int alive_cell_count = 0;
 	std::chrono::time_point<std::chrono::steady_clock> last_simulation = std::chrono::steady_clock::now();
 
 public:
@@ -64,6 +65,8 @@ public:
 	static int get_cell_state(const Cell &c);
 
 	void set_simulation_speed(int speed);
+
+	[[nodiscard]] int get_alive_cell_count() const;
 
 	~Game();
 };
