@@ -71,7 +71,6 @@ void Game::one_loop_iteration(void *userData) {
 	}
 	game->handle_simulation_speed();
 	game->draw_frame();
-	std::cout << game->alive_cell_count << std::endl;
 }
 
 void Game::handle_simulation_speed() const {
@@ -99,6 +98,14 @@ void Game::handle_simulation_speed() const {
 }
 
 void Game::draw_frame() {
+	auto now = std::chrono::steady_clock::now();
+	double frame_ms = std::chrono::duration<double, std::milli>(now - last_frame_time).count();
+	last_frame_time = now;
+	if (frame_ms > 0.0) {
+		double instant_fps = 1000.0 / frame_ms;
+		fps = fps * 0.9 + instant_fps * 0.1;
+	}
+
 	SDL_SetRenderDrawColor(ren, 20, 20, 20, 255);
 	SDL_RenderClear(ren);
 
@@ -307,6 +314,7 @@ void Game::handle_mouse_wheel(const SDL_Event &e) {
 
 
 void Game::simulate_generation() {
+	auto gen_start = std::chrono::steady_clock::now();
 	set_active_next->clear();
 	set_active_next->reserve(set_active->size() + set_active->size() / 2);
 	set_potential_next->clear();
@@ -348,6 +356,8 @@ void Game::simulate_generation() {
 	std::swap(set_active, set_active_next);
 	g_game->alive_cell_count = static_cast<int>(set_active->size());
 	g_game->last_simulation = std::chrono::steady_clock::now();
+	g_game->last_gen_ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - gen_start).
+			count();
 }
 
 void Game::draw_cells() const {
@@ -384,6 +394,14 @@ int Game::get_alive_cell_count() const {
 	return alive_cell_count;
 }
 
+double Game::get_fps() const {
+	return fps;
+}
+
+double Game::get_last_gen_ms() const {
+	return last_gen_ms;
+}
+
 Game::~Game() {
 	SDL_DestroyRenderer(ren);
 	SDL_DestroyWindow(win);
@@ -406,10 +424,20 @@ int get_alive_cell_count_wrapper() {
 	return g_game->get_alive_cell_count();
 }
 
+double get_fps_wrapper() {
+	return g_game->get_fps();
+}
+
+double get_last_gen_ms_wrapper() {
+	return g_game->get_last_gen_ms();
+}
+
 EMSCRIPTEN_BINDINGS(my_module) {
 	emscripten::function("select_pattern", &select_pattern_wrapper);
 	emscripten::function("deselect_pattern", &deselect_pattern_wrapper);
 	emscripten::function("set_simulation_speed", &set_simulation_speed_wrapper);
 	emscripten::function("get_alive_cell_count", &get_alive_cell_count_wrapper);
+	emscripten::function("get_fps", &get_fps_wrapper);
+	emscripten::function("get_last_gen_ms", &get_last_gen_ms_wrapper);
 }
 #endif

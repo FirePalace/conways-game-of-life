@@ -19,7 +19,10 @@ class Game {
 	std::optional<Pattern> selected_pattern;
 	int simulation_speed = 0;
 	int alive_cell_count = 0;
-	std::chrono::time_point<std::chrono::steady_clock> last_simulation = std::chrono::steady_clock::now();
+	std::chrono::time_point<std::chrono::steady_clock> last_simulation, last_frame_time =
+					std::chrono::steady_clock::now();
+	double fps = 0.0;
+	double last_gen_ms = 0.0;
 
 public:
 	Game(const char *title, int width, int height, SDL_WindowFlags flags);
@@ -67,6 +70,8 @@ public:
 	void set_simulation_speed(int speed);
 
 	[[nodiscard]] int get_alive_cell_count() const;
+	[[nodiscard]] double get_fps() const;
+	[[nodiscard]] double get_last_gen_ms() const;
 
 	~Game();
 };
