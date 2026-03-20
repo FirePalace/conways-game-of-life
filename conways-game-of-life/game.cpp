@@ -8,6 +8,9 @@
 #include <iostream>
 #include <cmath>
 #include <filesystem>
+#include <cstdint>
+#include <array>
+#include <unordered_map>
 
 
 Game::Game(const char *title, int width, int height, SDL_WindowFlags flags)
@@ -299,46 +302,43 @@ void Game::handle_mouse_wheel(const SDL_Event &e) {
 
 void Game::simulate_generation() {
 	set_active_next->clear();
-	set_active_next->reserve(set_active->size());
+	set_active_next->reserve(set_active->size() + set_active->size() / 2);
+	set_potential_next->clear();
 
-	*set_potential = *set_potential_next;
-	*set_potential_next = *set_active;
+	static const std::array<Cell, 8> NEIGHBOR_OFFSETS{
+		Cell{-1, -1}, Cell{0, -1}, Cell{1, -1},
+		Cell{-1, 0}, Cell{1, 0},
+		Cell{-1, 1}, Cell{0, 1}, Cell{1, 1}
+	};
+	static const std::array<Cell, 9> POTENTIAL_OFFSETS{
+		Cell{-1, -1}, Cell{0, -1}, Cell{1, -1},
+		Cell{-1, 0}, Cell{0, 0}, Cell{1, 0},
+		Cell{-1, 1}, Cell{0, 1}, Cell{1, 1}
+	};
 
-	for (const auto &c: *set_potential) {
-		int neighbours =
-				get_cell_state(Cell(c.x - 1, c.y - 1)) +
-				get_cell_state(Cell(c.x - 0, c.y - 1)) +
-				get_cell_state(Cell(c.x + 1, c.y - 1)) +
-				get_cell_state(Cell(c.x - 1, c.y + 0)) +
-				get_cell_state(Cell(c.x + 1, c.y + 0)) +
-				get_cell_state(Cell(c.x - 1, c.y + 1)) +
-				get_cell_state(Cell(c.x + 0, c.y + 1)) +
-				get_cell_state(Cell(c.x + 1, c.y + 1));
+	std::unordered_map<Cell, uint8_t> neighbour_counts;
+	neighbour_counts.reserve(set_active->size() * 8);
 
+	for (const Cell &alive_cell : *set_active) {
+		for (const Cell &offset : NEIGHBOR_OFFSETS) {
+			++neighbour_counts[alive_cell + offset];
+		}
+	}
 
-		if (get_cell_state(c) == 1) {
-			bool cell_lives_on = (neighbours == 2 || neighbours == 3);
+	for (const auto &[cell, neighbours] : neighbour_counts) {
+		const bool is_alive = set_active->contains(cell);
+		const bool survives = is_alive && (neighbours == 2 || neighbours == 3);
+		const bool is_born = !is_alive && neighbours == 3;
 
-			if (!cell_lives_on) {
-				for (int y = -1; y <= 1; y++)
-					for (int x = -1; x <= 1; x++)
-						set_potential_next->insert(c + Cell(x, y));
-			} else {
-				set_active_next->insert(c);
-			}
-		} else {
-			bool cell_to_life = (neighbours == 3);
-			if (cell_to_life) {
-				set_active_next->insert(c);
-
-
-				for (int y = -1; y <= 1; y++)
-					for (int x = -1; x <= 1; x++)
-						set_potential_next->insert(c + Cell(x, y));
-			} else {
+		if (survives || is_born) {
+			set_active_next->insert(cell);
+			for (const Cell &offset : POTENTIAL_OFFSETS) {
+				set_potential_next->insert(cell + offset);
 			}
 		}
 	}
+
+	set_potential->swap(*set_potential_next);
 	std::swap(set_active, set_active_next);
 	g_game->last_simulation = std::chrono::steady_clock::now();
 }
