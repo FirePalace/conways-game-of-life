@@ -88,6 +88,7 @@ void Game::handle_simulation_speed() const {
 			if (delta >= std::chrono::milliseconds(250)) {
 				simulate_generation();
 			}
+			break;
 		default:
 			return;
 	}

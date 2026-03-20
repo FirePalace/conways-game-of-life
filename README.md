@@ -130,9 +130,6 @@ This project is licensed under the MIT License. See the LICENSE.txt file for det
 
 ## Acknowledgments
 
-- The (p,p+8)  prime calculator was created by Nathaniel Johnston. It is based on the cousin prime calculator, which is
-  based
-  on Dean Hickerson's primer
-  pattern. Constructed on August 2, 2009 with calcyman.
+- The (p,p+8) prime calculator was created by Nathaniel Johnston. It is based on the cousin prime calculator, which is based on Dean Hickerson's primer pattern. Constructed on August 2, 2009 with calcyman.
 
-- The Turing Machine was designed by Paul Rendell 02/April/00. http://rendell-attic.org/gol/tm.htm
+- The Turing Machine was designed by Paul Rendell April 2, 2000. http://rendell-attic.org/gol/tm.htm
